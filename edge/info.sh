@@ -93,33 +93,34 @@ fi
 
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
-MESSAGE="EDGE NODE STATUS
-============================
-
-[ GENERAL ]
-Host    : $HOSTNAME
-Uptime  : $UPTIME
-Load    : $LOADAVG
-
-[ RESOURCES ]
-CPU     : $CPU_USAGE
-RAM     : ${MEM_USED}MB / ${MEM_TOTAL}MB (${MEM_PERCENT}%)
-Disk    : ${DISK_USED} / ${DISK_TOTAL} (${DISK_PERCENT})
-
-[ NETWORK ]
-Download: ${RX_RATE} KB/s
-Upload  : ${TX_RATE} KB/s
-
-[ WIREGUARD ]
-Status    : $WG_STATUS
-Handshake  : $WG_PEER_STATUS
-
-[ DOCKER ]
-Daemon     : $DOCKER_STATUS
-Containers : ${RUNNING_CONTAINERS}/${TOTAL_CONTAINERS}
-Commander  : $CONTAINER_STATUS
-
-============================
-${TIMESTAMP}"
-
-echo "$MESSAGE"
+# Build message line by line to avoid any variable expansion issues
+{
+    echo "EDGE NODE STATUS"
+    echo "============================"
+    echo ""
+    echo "[ GENERAL ]"
+    echo "Host    : $HOSTNAME"
+    echo "Uptime  : $UPTIME"
+    echo "Load    : $LOADAVG"
+    echo ""
+    echo "[ RESOURCES ]"
+    echo "CPU     : $CPU_USAGE"
+    echo "RAM     : ${MEM_USED}MB / ${MEM_TOTAL}MB (${MEM_PERCENT}%)"
+    echo "Disk    : ${DISK_USED} / ${DISK_TOTAL} (${DISK_PERCENT})"
+    echo ""
+    echo "[ NETWORK ]"
+    echo "Download: ${RX_RATE} KB/s"
+    echo "Upload  : ${TX_RATE} KB/s"
+    echo ""
+    echo "[ WIREGUARD ]"
+    echo "Status    : $WG_STATUS"
+    echo "Handshake : $WG_PEER_STATUS"
+    echo ""
+    echo "[ DOCKER ]"
+    echo "Daemon     : $DOCKER_STATUS"
+    echo "Containers : ${RUNNING_CONTAINERS}/${TOTAL_CONTAINERS}"
+    echo "Commander  : $CONTAINER_STATUS"
+    echo ""
+    echo "============================"
+    echo "$TIMESTAMP"
+} | tee /tmp/edge_status.log
