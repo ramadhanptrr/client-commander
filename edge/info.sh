@@ -4,10 +4,11 @@
 # EDGE NODE STATUS (TELEGRAM FRIENDLY)
 # ==========================================
 
-HOSTNAME=$(hostname)
+# Hostname: fallback if hostname cmd fails (common in containers)
+HOSTNAME=$(hostname 2>/dev/null || cat /etc/hostname 2>/dev/null || echo "edge-node")
 
 # Uptime
-UPTIME=$(uptime -p | sed 's/up //')
+UPTIME=$(uptime -p 2>/dev/null | sed 's/up //' || echo "unknown")
 
 # Load Average
 LOADAVG=$(cut -d " " -f1-3 /proc/loadavg)
@@ -54,10 +55,16 @@ fi
 
 CONTAINER_NAME="telegram-commander"
 
-if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+# Check if Commander bot process is running (more reliable inside container)
+if pgrep -f "python.*bot" > /dev/null 2>&1; then
     CONTAINER_STATUS="RUNNING"
 else
-    CONTAINER_STATUS="STOPPED"
+    # Fallback: check container name (works on host)
+    if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^${CONTAINER_NAME}$"; then
+        CONTAINER_STATUS="RUNNING"
+    else
+        CONTAINER_STATUS="STOPPED"
+    fi
 fi
 
 RUNNING_CONTAINERS=$(docker ps -q | wc -l)
@@ -93,34 +100,31 @@ fi
 
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
-# Build message line by line to avoid any variable expansion issues
-{
-    echo "EDGE NODE STATUS"
-    echo "============================"
-    echo ""
-    echo "[ GENERAL ]"
-    echo "Host    : $HOSTNAME"
-    echo "Uptime  : $UPTIME"
-    echo "Load    : $LOADAVG"
-    echo ""
-    echo "[ RESOURCES ]"
-    echo "CPU     : $CPU_USAGE"
-    echo "RAM     : ${MEM_USED}MB / ${MEM_TOTAL}MB (${MEM_PERCENT}%)"
-    echo "Disk    : ${DISK_USED} / ${DISK_TOTAL} (${DISK_PERCENT})"
-    echo ""
-    echo "[ NETWORK ]"
-    echo "Download: ${RX_RATE} KB/s"
-    echo "Upload  : ${TX_RATE} KB/s"
-    echo ""
-    echo "[ WIREGUARD ]"
-    echo "Status    : $WG_STATUS"
-    echo "Handshake : $WG_PEER_STATUS"
-    echo ""
-    echo "[ DOCKER ]"
-    echo "Daemon     : $DOCKER_STATUS"
-    echo "Containers : ${RUNNING_CONTAINERS}/${TOTAL_CONTAINERS}"
-    echo "Commander  : $CONTAINER_STATUS"
-    echo ""
-    echo "============================"
-    echo "$TIMESTAMP"
-} 2>&1
+echo "EDGE NODE STATUS"
+echo "============================"
+echo ""
+echo "[ GENERAL ]"
+echo "Host    : $HOSTNAME"
+echo "Uptime  : $UPTIME"
+echo "Load    : $LOADAVG"
+echo ""
+echo "[ RESOURCES ]"
+echo "CPU     : $CPU_USAGE"
+echo "RAM     : ${MEM_USED}MB / ${MEM_TOTAL}MB (${MEM_PERCENT}%)"
+echo "Disk    : ${DISK_USED} / ${DISK_TOTAL} (${DISK_PERCENT})"
+echo ""
+echo "[ NETWORK ]"
+echo "Download: ${RX_RATE} KB/s"
+echo "Upload  : ${TX_RATE} KB/s"
+echo ""
+echo "[ WIREGUARD ]"
+echo "Status    : $WG_STATUS"
+echo "Handshake : $WG_PEER_STATUS"
+echo ""
+echo "[ DOCKER ]"
+echo "Daemon     : $DOCKER_STATUS"
+echo "Containers : ${RUNNING_CONTAINERS}/${TOTAL_CONTAINERS}"
+echo "Commander  : $CONTAINER_STATUS"
+echo ""
+echo "============================"
+echo "$TIMESTAMP"
