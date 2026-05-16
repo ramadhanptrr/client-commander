@@ -123,4 +123,4 @@ TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
     echo ""
     echo "============================"
     echo "$TIMESTAMP"
-} | tee /tmp/edge_status.log
+} 2>&1
