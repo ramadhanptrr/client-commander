@@ -126,34 +126,32 @@ fi
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
 MESSAGE=$(cat <<EOF
-🔍 <b>EDGE NODE STATUS</b>
-━━━━━━━━━━━━━━━━━━━━
+<b>EDGE NODE STATUS</b>
 
-📌 <b>General</b>
-   🌐 Host    <code>$HOSTNAME</code>
-   ⏱️  Uptime <code>$UPTIME</code>
-   📊 Load    <code>$LOADAVG</code>
+<strong>General</strong>
+Host: <code>$HOSTNAME</code>
+Uptime: <code>$UPTIME</code>
+Load: <code>$LOADAVG</code>
 
-🖥️  <b>Resources</b>
-   CPU   $CPU_USAGE
-   RAM   ${MEM_USED}MB / ${MEM_TOTAL}MB <code>(${MEM_PERCENT}%)</code>
-   Disk  ${DISK_USED} / ${DISK_TOTAL} <code>(${DISK_PERCENT})</code>
+<strong>Resources</strong>
+CPU: $CPU_USAGE
+RAM: ${MEM_USED}MB / ${MEM_TOTAL}MB (${MEM_PERCENT}%)
+Disk: ${DISK_USED} / ${DISK_TOTAL} (${DISK_PERCENT})
 
-🌐 <b>Network</b>
-   ⬇️  Download <code>${RX_RATE} KB/s</code>
-   ⬆️  Upload   <code>${TX_RATE} KB/s</code>
+<strong>Network</strong>
+Download: <code>${RX_RATE} KB/s</code>
+Upload: <code>${TX_RATE} KB/s</code>
 
-🔒 <b>WireGuard</b>
-   $WG_ICON Status     <code>$WG_STATUS</code>
-   $HANDSHAKE_ICON Handshake <code>$WG_PEER_STATUS</code>
+<strong>WireGuard</strong>
+Status: $WG_ICON <code>$WG_STATUS</code>
+Handshake: $HANDSHAKE_ICON <code>$WG_PEER_STATUS</code>
 
-🐳 <b>Docker</b>
-   $DOCKER_ICON Daemon     <code>$DOCKER_STATUS</code>
-   📦 Containers  <code>${RUNNING_CONTAINERS}/${TOTAL_CONTAINERS}</code>
-   $CONTAINER_ICON Commander   <code>$CONTAINER_STATUS</code>
+<strong>Docker</strong>
+Daemon: $DOCKER_ICON <code>$DOCKER_STATUS</code>
+Containers: <code>${RUNNING_CONTAINERS}/${TOTAL_CONTAINERS}</code>
+Commander: $CONTAINER_ICON <code>$CONTAINER_STATUS</code>
 
-━━━━━━━━━━━━━━━━━━━━
-🕐 $TIMESTAMP
+$TIMESTAMP
 EOF
 )
 
