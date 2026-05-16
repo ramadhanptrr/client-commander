@@ -88,33 +88,72 @@ else
 fi
 
 # ==========================================
+# STATUS INDICATORS (color-friendly emoji)
+# ==========================================
+
+# Docker indicator
+case "$DOCKER_STATUS" in
+    ONLINE)  DOCKER_ICON="🟢" ;;
+    OFFLINE) DOCKER_ICON="🔴" ;;
+    *)       DOCKER_ICON="⚪" ;;
+esac
+
+# Container indicator
+case "$CONTAINER_STATUS" in
+    RUNNING)  CONTAINER_ICON="🟢" ;;
+    STOPPED)  CONTAINER_ICON="🔴" ;;
+    *)        CONTAINER_ICON="⚪" ;;
+esac
+
+# WireGuard indicator
+case "$WG_STATUS" in
+    ONLINE)  WG_ICON="🟢" ;;
+    OFFLINE) WG_ICON="🔴" ;;
+    *)       WG_ICON="⚪" ;;
+esac
+
+# Handshake freshness
+if [ "$WG_PEER_STATUS" = "NO HANDSHAKE" ] || [ "$WG_PEER_STATUS" = "-" ]; then
+    HANDSHAKE_ICON="⚠️"
+else
+    HANDSHAKE_ICON="✅"
+fi
+
+# ==========================================
 # OUTPUT
 # ==========================================
 
+TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+
 MESSAGE=$(cat <<EOF
-<pre>
-EDGE NODE STATUS
+🔍 <b>EDGE NODE STATUS</b>
+━━━━━━━━━━━━━━━━━━━━
 
-Host        : $HOSTNAME
-Uptime      : $UPTIME
-Load Avg    : $LOADAVG
+📌 <b>General</b>
+   🌐 Host    <code>$HOSTNAME</code>
+   ⏱️  Uptime <code>$UPTIME</code>
+   📊 Load    <code>$LOADAVG</code>
 
-CPU         : $CPU_USAGE
-Memory      : ${MEM_USED}MB / ${MEM_TOTAL}MB (${MEM_PERCENT}%)
-Disk        : ${DISK_USED} / ${DISK_TOTAL} (${DISK_PERCENT})
+🖥️  <b>Resources</b>
+   CPU   $CPU_USAGE
+   RAM   ${MEM_USED}MB / ${MEM_TOTAL}MB <code>(${MEM_PERCENT}%)</code>
+   Disk  ${DISK_USED} / ${DISK_TOTAL} <code>(${DISK_PERCENT})</code>
 
-Download    : ${RX_RATE} KB/s
-Upload      : ${TX_RATE} KB/s
+🌐 <b>Network</b>
+   ⬇️  Download <code>${RX_RATE} KB/s</code>
+   ⬆️  Upload   <code>${TX_RATE} KB/s</code>
 
-WireGuard   : $WG_STATUS
-Handshake   : $WG_PEER_STATUS
+🔒 <b>WireGuard</b>
+   $WG_ICON Status     <code>$WG_STATUS</code>
+   $HANDSHAKE_ICON Handshake <code>$WG_PEER_STATUS</code>
 
-Docker      : $DOCKER_STATUS
-Containers  : ${RUNNING_CONTAINERS}/${TOTAL_CONTAINERS}
-Commander   : $CONTAINER_STATUS
+🐳 <b>Docker</b>
+   $DOCKER_ICON Daemon     <code>$DOCKER_STATUS</code>
+   📦 Containers  <code>${RUNNING_CONTAINERS}/${TOTAL_CONTAINERS}</code>
+   $CONTAINER_ICON Commander   <code>$CONTAINER_STATUS</code>
 
-$(date '+%Y-%m-%d %H:%M:%S')
-</pre>
+━━━━━━━━━━━━━━━━━━━━
+🕐 $TIMESTAMP
 EOF
 )
 
