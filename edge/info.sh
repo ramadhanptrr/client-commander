@@ -1,0 +1,121 @@
+#!/bin/bash
+
+# ==========================================
+# EDGE NODE STATUS (TELEGRAM FRIENDLY)
+# ==========================================
+
+HOSTNAME=$(hostname)
+
+# Uptime
+UPTIME=$(uptime -p | sed 's/up //')
+
+# Load Average
+LOADAVG=$(cut -d " " -f1-3 /proc/loadavg)
+
+# CPU Usage
+CPU_USAGE=$(top -bn1 | awk '/Cpu\(s\)/ {printf "%.0f%%", 100 - $8}')
+
+# Memory Usage
+MEM_TOTAL=$(free -m | awk '/Mem:/ {print $2}')
+MEM_USED=$(free -m | awk '/Mem:/ {print $3}')
+MEM_PERCENT=$(free | awk '/Mem:/ {printf("%.0f"), $3/$2 * 100}')
+
+# Disk Usage
+DISK_USED=$(df -h / | awk 'NR==2 {print $3}')
+DISK_TOTAL=$(df -h / | awk 'NR==2 {print $2}')
+DISK_PERCENT=$(df -h / | awk 'NR==2 {print $5}')
+
+# ==========================================
+# NETWORK USAGE
+# ==========================================
+
+IFACE=$(ip route | awk '/default/ {print $5}' | head -n1)
+
+RX1=$(cat /sys/class/net/$IFACE/statistics/rx_bytes 2>/dev/null || echo 0)
+TX1=$(cat /sys/class/net/$IFACE/statistics/tx_bytes 2>/dev/null || echo 0)
+
+sleep 1
+
+RX2=$(cat /sys/class/net/$IFACE/statistics/rx_bytes 2>/dev/null || echo 0)
+TX2=$(cat /sys/class/net/$IFACE/statistics/tx_bytes 2>/dev/null || echo 0)
+
+RX_RATE=$(( (RX2 - RX1) / 1024 ))
+TX_RATE=$(( (TX2 - TX1) / 1024 ))
+
+# ==========================================
+# DOCKER STATUS
+# ==========================================
+
+if systemctl is-active --quiet docker; then
+    DOCKER_STATUS="ONLINE"
+else
+    DOCKER_STATUS="OFFLINE"
+fi
+
+CONTAINER_NAME="telegram-commander"
+
+if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+    CONTAINER_STATUS="RUNNING"
+else
+    CONTAINER_STATUS="STOPPED"
+fi
+
+RUNNING_CONTAINERS=$(docker ps -q | wc -l)
+TOTAL_CONTAINERS=$(docker ps -aq | wc -l)
+
+# ==========================================
+# WIREGUARD STATUS
+# ==========================================
+
+WG_INTERFACE=$(sudo wg show interfaces 2>/dev/null | awk '{print $1}' | head -n1)
+
+if [ -n "$WG_INTERFACE" ]; then
+
+    WG_STATUS="ONLINE"
+
+    WG_PEER_STATUS=$(sudo wg show "$WG_INTERFACE" 2>/dev/null \
+        | grep "latest handshake" \
+        | head -n1 \
+        | sed 's/.*latest handshake: //')
+
+    if [ -z "$WG_PEER_STATUS" ]; then
+        WG_PEER_STATUS="NO HANDSHAKE"
+    fi
+
+else
+    WG_STATUS="OFFLINE"
+    WG_PEER_STATUS="-"
+fi
+
+# ==========================================
+# OUTPUT
+# ==========================================
+
+MESSAGE=$(cat <<EOF
+<pre>
+EDGE NODE STATUS
+
+Host        : $HOSTNAME
+Uptime      : $UPTIME
+Load Avg    : $LOADAVG
+
+CPU         : $CPU_USAGE
+Memory      : ${MEM_USED}MB / ${MEM_TOTAL}MB (${MEM_PERCENT}%)
+Disk        : ${DISK_USED} / ${DISK_TOTAL} (${DISK_PERCENT})
+
+Download    : ${RX_RATE} KB/s
+Upload      : ${TX_RATE} KB/s
+
+WireGuard   : $WG_STATUS
+Handshake   : $WG_PEER_STATUS
+
+Docker      : $DOCKER_STATUS
+Containers  : ${RUNNING_CONTAINERS}/${TOTAL_CONTAINERS}
+Commander   : $CONTAINER_STATUS
+
+$(date '+%Y-%m-%d %H:%M:%S')
+</pre>
+EOF
+)
+
+echo "$MESSAGE"
