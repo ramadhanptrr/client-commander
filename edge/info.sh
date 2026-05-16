@@ -88,71 +88,38 @@ else
 fi
 
 # ==========================================
-# STATUS INDICATORS (color-friendly emoji)
-# ==========================================
-
-# Docker indicator
-case "$DOCKER_STATUS" in
-    ONLINE)  DOCKER_ICON="🟢" ;;
-    OFFLINE) DOCKER_ICON="🔴" ;;
-    *)       DOCKER_ICON="⚪" ;;
-esac
-
-# Container indicator
-case "$CONTAINER_STATUS" in
-    RUNNING)  CONTAINER_ICON="🟢" ;;
-    STOPPED)  CONTAINER_ICON="🔴" ;;
-    *)        CONTAINER_ICON="⚪" ;;
-esac
-
-# WireGuard indicator
-case "$WG_STATUS" in
-    ONLINE)  WG_ICON="🟢" ;;
-    OFFLINE) WG_ICON="🔴" ;;
-    *)       WG_ICON="⚪" ;;
-esac
-
-# Handshake freshness
-if [ "$WG_PEER_STATUS" = "NO HANDSHAKE" ] || [ "$WG_PEER_STATUS" = "-" ]; then
-    HANDSHAKE_ICON="⚠️"
-else
-    HANDSHAKE_ICON="✅"
-fi
-
-# ==========================================
 # OUTPUT
 # ==========================================
 
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
-MESSAGE=$(cat <<EOF
-<b>EDGE NODE STATUS</b>
+MESSAGE="EDGE NODE STATUS
+============================
 
-<strong>General</strong>
-Host: <code>$HOSTNAME</code>
-Uptime: <code>$UPTIME</code>
-Load: <code>$LOADAVG</code>
+[ GENERAL ]
+Host    : $HOSTNAME
+Uptime  : $UPTIME
+Load    : $LOADAVG
 
-<strong>Resources</strong>
-CPU: $CPU_USAGE
-RAM: ${MEM_USED}MB / ${MEM_TOTAL}MB (${MEM_PERCENT}%)
-Disk: ${DISK_USED} / ${DISK_TOTAL} (${DISK_PERCENT})
+[ RESOURCES ]
+CPU     : $CPU_USAGE
+RAM     : ${MEM_USED}MB / ${MEM_TOTAL}MB (${MEM_PERCENT}%)
+Disk    : ${DISK_USED} / ${DISK_TOTAL} (${DISK_PERCENT})
 
-<strong>Network</strong>
-Download: <code>${RX_RATE} KB/s</code>
-Upload: <code>${TX_RATE} KB/s</code>
+[ NETWORK ]
+Download: ${RX_RATE} KB/s
+Upload  : ${TX_RATE} KB/s
 
-<strong>WireGuard</strong>
-Status: $WG_ICON <code>$WG_STATUS</code>
-Handshake: $HANDSHAKE_ICON <code>$WG_PEER_STATUS</code>
+[ WIREGUARD ]
+Status    : $WG_STATUS
+Handshake  : $WG_PEER_STATUS
 
-<strong>Docker</strong>
-Daemon: $DOCKER_ICON <code>$DOCKER_STATUS</code>
-Containers: <code>${RUNNING_CONTAINERS}/${TOTAL_CONTAINERS}</code>
-Commander: $CONTAINER_ICON <code>$CONTAINER_STATUS</code>
+[ DOCKER ]
+Daemon     : $DOCKER_STATUS
+Containers : ${RUNNING_CONTAINERS}/${TOTAL_CONTAINERS}
+Commander  : $CONTAINER_STATUS
 
-$TIMESTAMP
-EOF
-)
+============================
+${TIMESTAMP}"
 
 echo "$MESSAGE"
